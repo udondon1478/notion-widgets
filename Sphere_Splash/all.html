@@ -313,14 +313,6 @@
 
                 return (
                     <div>
-                        <button 
-                            className="theme-toggle" 
-                            onClick={this.toggleTheme}
-                            aria-label="テーマを切り替え"
-                        >
-                            {isDarkMode ? '🌞 Light' : '🌙 Dark'}
-                        </button>
-
                         <div style={containerStyle} className="flex items-center">
                             <Canvas w={s} h={s} bgColor={themeColors.canvasBg}>
                                 <Nucleus 
