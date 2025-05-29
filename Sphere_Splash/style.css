@@ -1,8 +1,36 @@
+/* 共通スタイル */
 body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
 }
 
-.flex { display: flex; }
-.items-center { align-items: center; }
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+/* ライトモード */
+@media (prefers-color-scheme: light) {
+  body {
+    background-color: #ffffff;
+  }
+
+  .canvas-container {
+    background-color: #ffffff;
+  }
+}
+
+/* ダークモード */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #000000;
+  }
+
+  .canvas-container {
+    background-color: #231F20;
+  }
+}
