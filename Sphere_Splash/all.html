@@ -10,6 +10,11 @@
             padding: 0;
             font-family: sans-serif;
             transition: background-color 0.3s ease, color 0.3s ease;
+            overflow: hidden;
+        }
+
+        html {
+            overflow: hidden;
         }
 
         .flex { display: flex; }
@@ -65,7 +70,9 @@
 
         .container {
             height: 100vh;
+            width: 100vw;
             transition: background-color 0.3s ease;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -299,7 +306,9 @@
                 const containerStyle = {
                     backgroundColor: themeColors.background,
                     height: '100vh',
+                    width: '100vw',
                     transition: 'background-color 0.3s ease',
+                    overflow: 'hidden',
                 };
 
                 return (
