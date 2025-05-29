@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Animation with GSAP - Theme Toggle</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+
+        /* ライトモード */
+        .light-mode {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* ダークモード */
+        .dark-mode {
+            background-color: #231F20;
+            color: #fff;
+        }
+
+        /* テーマトグルボタン */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: 2px solid;
+            border-radius: 50px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .light-mode .theme-toggle {
+            border-color: #333;
+            color: #333;
+        }
+
+        .light-mode .theme-toggle:hover {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .dark-mode .theme-toggle {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .dark-mode .theme-toggle:hover {
+            background-color: #fff;
+            color: #333;
+        }
+
+        .container {
+            height: 100vh;
+            transition: background-color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@15/dist/react.js"></script>
+    <script src="https://unpkg.com/react-dom@15/dist/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { Component } = React;
+
+        /**
+         * Crest
+         */
+        class Crest extends Component {
+            componentDidMount() {
+                const { count, center, circleSize, offset, radius, delay } = this.props;
+                const offsetToC = offsetTo(center);
+                const theta = 2 * Math.PI / count;
+                const delta = offset ? theta / 2 : 0;
+
+                Array(count).fill().forEach((_, idx) => {
+                    const start = getLocation(theta, delta, idx, radius, offsetToC);
+                    const end = getLocation(theta, delta, idx, radius * 0.5, offsetToC);
+
+                    TweenMax.fromTo(this.refs[idx], 1, {
+                        attr: { r: circleSize, cx: start.x, cy: start.y },
+                    }, {
+                        attr: { r: circleSize / 8, cx: end.x, cy: end.y },
+                        ease: Sine.easeInOut,
+                        delay,
+                        yoyo: true,
+                        repeat: -1,
+                    });
+                });
+            }
+
+            render() {
+                const { count, circleSize, radius, center, offset, fill } = this.props;
+                const theta = 2 * Math.PI / count;
+                const delta = offset ? theta / 2 : 0;
+                const nodes = Array(count).fill();
+
+                return (
+                    <g>
+                        { getCircles(theta, delta, radius, circleSize, fill, center, nodes) }
+                    </g>
+                );
+            }
+        }
+
+        Crest.propTypes = {
+            count: React.PropTypes.number.isRequired,
+            circleSize: React.PropTypes.number.isRequired,
+            center: React.PropTypes.object.isRequired,
+            fill: React.PropTypes.string.isRequired,
+            offset: React.PropTypes.bool.isRequired,
+        };
+
+        function getCircles(theta, delta, radius, circleR, fill, center, nodes) {
+            const offsetToC = offsetTo(center);
+
+            return nodes.map((_, idx) => {
+                const l = getLocation(theta, delta, idx, radius, offsetToC);
+                return (
+                    <circle key={ idx }
+                        ref={ idx }
+                        cx={ l.x } cy={ l.y }
+                        r={ circleR }
+                        fill={ fill }
+                        strokeWidth={ circleR * 0.2 } />
+                );
+            });
+        }
+
+        function getLocation(theta, delta, idx, r, offsetToC) {
+            return polarToCartesian(delta + theta * idx, r, offsetToC);
+        }
+
+        function polarToCartesian(theta, r, offsetToC) {
+            const x = r * Math.cos(theta);
+            const y = r * Math.sin(theta);
+            return offsetToC({ x, y });
+        }
+
+        function offsetTo(center) {
+            return function offsetToC({ x, y }) {
+                return {
+                    x: center.x + x,
+                    y: center.y - y,
+                };
+            };
+        }
+
+        /**
+         * Nucleus
+         */
+        class Nucleus extends Component {
+            componentDidMount() {
+                const { r } = this.props;
+
+                TweenMax.fromTo(this.refs.circle, 1, {
+                    attr: { r: r },
+                }, {
+                    attr: { r: r / 8, },
+                    ease: Sine.easeInOut,
+                    yoyo: true,
+                    repeat: -1,
+                });
+            }
+
+            render() {
+                const { x, y, r, fill } = this.props;
+
+                return (
+                    <circle ref="circle"
+                        cx={ x } cy={ y }
+                        r={ r }
+                        fill={ fill } />
+                );
+            }
+        }
+
+        Nucleus.propTypes = {
+            x: React.PropTypes.number.isRequired,
+            y: React.PropTypes.number.isRequired,
+            r: React.PropTypes.number.isRequired,
+            fill: React.PropTypes.string.isRequired,
+        };
+
+        /**
+         * Canvas
+         */
+        function Canvas({ w, h, children, bgColor = 'transparent' }) {
+            const viewBox = [0, 0, w, h].join(' ');
+            const styles = {
+                display: 'block',
+                backgroundColor: bgColor,
+                maxWidth: '400px',
+                width: '100%',
+                margin: '0 auto',
+                transition: 'background-color 0.3s ease',
+            };
+
+            return (
+                <svg version="1.1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox={ viewBox }
+                    style={ styles }>
+                    { children }
+                </svg>
+            );
+        }
+
+        Canvas.propTypes = {
+            h: React.PropTypes.number.isRequired,
+            w: React.PropTypes.number.isRequired,
+            children: React.PropTypes.node,
+            bgColor: React.PropTypes.string,
+        };
+
+        /**
+         * App
+         */
+        const s = 200;
+        const center = { x: s / 2, y: s / 2 };
+        const circleSize = 3;
+        const amp = 12;
+        const crests = [
+            { count: 8, offset: false },
+            { count: 16, offset: false },
+            { count: 16, offset: true },
+            { count: 16, offset: false },
+            { count: 16, offset: true },
+            { count: 16, offset: false },
+        ];
+
+        class App extends Component {
+            constructor(props) {
+                super(props);
+                
+                // システムのテーマ設定を取得
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                
+                this.state = {
+                    isDarkMode: prefersDark
+                };
+
+                this.toggleTheme = this.toggleTheme.bind(this);
+            }
+
+            componentDidMount() {
+                // システムのテーマ変更を監視
+                if (window.matchMedia) {
+                    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                    mediaQuery.addListener((e) => {
+                        this.setState({ isDarkMode: e.matches });
+                    });
+                }
+
+                // bodyにテーマクラスを適用
+                this.updateBodyClass();
+            }
+
+            componentDidUpdate() {
+                this.updateBodyClass();
+            }
+
+            updateBodyClass() {
+                document.body.className = this.state.isDarkMode ? 'dark-mode' : 'light-mode';
+            }
+
+            toggleTheme() {
+                this.setState(prevState => ({
+                    isDarkMode: !prevState.isDarkMode
+                }));
+            }
+
+            render() {
+                const { isDarkMode } = this.state;
+                
+                const themeColors = {
+                    background: isDarkMode ? '#231F20' : '#f8f9fa',
+                    circle: isDarkMode ? '#fff' : '#333',
+                    canvasBg: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+                };
+
+                const containerStyle = {
+                    backgroundColor: themeColors.background,
+                    height: '100vh',
+                    transition: 'background-color 0.3s ease',
+                };
+
+                return (
+                    <div>
+                        <button 
+                            className="theme-toggle" 
+                            onClick={this.toggleTheme}
+                            aria-label="テーマを切り替え"
+                        >
+                            {isDarkMode ? '🌞 Light' : '🌙 Dark'}
+                        </button>
+
+                        <div style={containerStyle} className="flex items-center">
+                            <Canvas w={s} h={s} bgColor={themeColors.canvasBg}>
+                                <Nucleus 
+                                    x={center.x} 
+                                    y={center.y}
+                                    r={circleSize}
+                                    fill={themeColors.circle} 
+                                />
+
+                                {crests.map(({ count, offset }, idx) => (
+                                    <Crest 
+                                        key={idx}
+                                        count={count}
+                                        circleSize={circleSize}
+                                        radius={amp + amp * idx}
+                                        center={center}
+                                        offset={offset}
+                                        delay={0.8 * (idx + 1) / crests.length}
+                                        fill={themeColors.circle} 
+                                    />
+                                ))}
+                            </Canvas>
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        ReactDOM.render(
+            <App />,
+            document.getElementById('root')
+        );
+    </script>
+</body>
+</html>
