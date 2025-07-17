@@ -205,6 +205,6 @@ function draw() {
 	drawing.draw(millis())
 }
 
-function mouseClicked() {
-	drawing = new Drawing(random(palettes))
-}
+// function mouseClicked() {
+// 	drawing = new Drawing(random(palettes))
+// }
