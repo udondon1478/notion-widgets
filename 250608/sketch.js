@@ -194,6 +194,13 @@ function setup() {
 	}
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  drawing.m = min(width, height) * 0.75;
+  drawing.unit = drawing.m / drawing.n;
+  drawing.tiles = drawing.makeTiles(drawing.idealLength);
+}
+
 function draw() {
 	drawing.draw(millis())
 }
